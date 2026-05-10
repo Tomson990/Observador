@@ -1,4 +1,94 @@
-OBSERVADOR
-No hay respuestas aquí. Solo preguntas que ayudan a ver.
-Escribí lo que te está pasando. Una experiencia, una sensación, un pensamiento. Cualquier cosa.
-COMENZAR
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Observador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --black: #0a0a0a; --white: #f0ede8; --dim: #7a7670; --faint: #1e1c1a; --border: #2a2825; }
+  html, body { height: 100%; background: var(--black); color: var(--white); font-family: 'EB Garamond', Georgia, serif; font-size: 18px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  body { display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 0 1.5rem; }
+  #landing { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; max-width: 480px; animation: fadeIn 2s ease forwards; }
+  .wordmark { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 300; font-size: 13px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--dim); margin-bottom: 3.5rem; }
+  .tagline { font-family: 'EB Garamond', Georgia, serif; font-size: 1.55rem; font-weight: 400; font-style: italic; color: var(--white); line-height: 1.55; margin-bottom: 1.5rem; opacity: 0.9; }
+  .sub { font-size: 0.95rem; color: var(--dim); line-height: 1.8; margin-bottom: 3.5rem; font-style: normal; }
+  .begin-btn { background: transparent; border: none; color: var(--white); font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 300; font-size: 13px; letter-spacing: 0.3em; text-transform: uppercase; cursor: pointer; padding: 0; opacity: 0.5; transition: opacity 0.4s ease; position: relative; }
+  .begin-btn::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 0.5px; background: var(--white); transition: width 0.4s ease; }
+  .begin-btn:hover { opacity: 1; }
+  .begin-btn:hover::after { width: 100%; }
+  #chat { display: none; flex-direction: column; width: 100%; max-width: 560px; min-height: 100vh; padding: 3rem 0 2rem; animation: fadeIn 1.2s ease forwards; }
+  .chat-header { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 300; font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--dim); margin-bottom: 3rem; text-align: center; }
+  .messages { flex: 1; display: flex; flex-direction: column; gap: 2rem; margin-bottom: 3rem; }
+  .msg { font-size: 1.05rem; line-height: 1.75; animation: fadeIn 0.8s ease forwards; }
+  .msg.user { color: var(--dim); padding-left: 1.5rem; border-left: 0.5px solid var(--border); }
+  .msg.assistant { color: var(--white); font-style: italic; }
+  .msg.thinking { color: var(--border); font-style: italic; font-size: 0.9rem; }
+  .input-area { border-top: 0.5px solid var(--border); padding-top: 1.5rem; }
+  textarea { width: 100%; background: transparent; border: none; outline: none; color: var(--white); font-family: 'EB Garamond', Georgia, serif; font-size: 1.05rem; line-height: 1.75; resize: none; min-height: 44px; max-height: 180px; overflow-y: auto; caret-color: var(--dim); }
+  textarea::placeholder { color: var(--border); font-style: italic; }
+  .input-footer { display: flex; justify-content: flex-end; margin-top: 1rem; }
+  .send-btn { background: transparent; border: none; color: var(--dim); font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 300; font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; cursor: pointer; transition: color 0.3s ease; padding: 0; }
+  .send-btn:hover { color: var(--white); }
+  .send-btn:disabled { opacity: 0.2; cursor: default; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @media (max-width: 480px) { .tagline { font-size: 1.3rem; } body { padding: 0 1.25rem; } }
+</style>
+</head>
+<body>
+<section id="landing">
+  <p class="wordmark">Observador</p>
+  <p class="tagline">No hay respuestas aquí.<br>Solo preguntas que ayudan a ver.</p>
+  <p class="sub">Escribí lo que te está pasando.<br>Una experiencia, una sensación, un pensamiento.<br>Cualquier cosa.</p>
+  <button class="begin-btn" onclick="startChat()">Comenzar</button>
+</section>
+<section id="chat">
+  <p class="chat-header">Observador</p>
+  <div class="messages" id="messages">
+    <div class="msg assistant">Escribí lo que te está pasando.</div>
+  </div>
+  <div class="input-area">
+    <textarea id="input" placeholder="Lo que sea..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+    <div class="input-footer">
+      <button class="send-btn" id="send-btn" onclick="send()">Enviar</button>
+    </div>
+  </div>
+</section>
+<script>
+  let history = [];
+  function startChat() { document.getElementById('landing').style.display = 'none'; const chat = document.getElementById('chat'); chat.style.display = 'flex'; setTimeout(() => document.getElementById('input').focus(), 300); }
+  function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 180) + 'px'; }
+  function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
+  async function send() {
+    const input = document.getElementById('input');
+    const text = input.value.trim();
+    if (!text) return;
+    const msgs = document.getElementById('messages');
+    const btn = document.getElementById('send-btn');
+    const userDiv = document.createElement('div');
+    userDiv.className = 'msg user';
+    userDiv.textContent = text;
+    msgs.appendChild(userDiv);
+    input.value = ''; input.style.height = 'auto'; btn.disabled = true;
+    const thinking = document.createElement('div');
+    thinking.className = 'msg thinking';
+    thinking.textContent = '·';
+    msgs.appendChild(thinking);
+    msgs.scrollTop = msgs.scrollHeight;
+    history.push({ role: 'user', content: text });
+    try {
+      const res = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: history }) });
+      const data = await res.json();
+      const reply = data.reply || '';
+      history.push({ role: 'assistant', content: reply });
+      thinking.className = 'msg assistant';
+      thinking.textContent = reply;
+    } catch(e) { thinking.className = 'msg thinking'; thinking.textContent = 'No se pudo conectar.'; }
+    btn.disabled = false;
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+</script>
+</body>
+</html>
