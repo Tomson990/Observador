@@ -1,4 +1,6 @@
-export default async function handler(req, res) {
+const fetch = require('node-fetch');
+
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -47,16 +49,4 @@ Una sola pregunta por turno. Sin introduccion, sin cierre, sin validacion. Solo 
   } catch (error) {
     res.status(500).json({ error: 'Error al conectar' });
   }
-}        max_tokens: 1000,
-        system: SYSTEM,
-        messages
-      })
-    });
-
-    const data = await response.json();
-    const reply = data.content?.find(b => b.type === 'text')?.text || '';
-    res.status(200).json({ reply });
-  } catch (error) {
-    res.status(500).json({ error: 'Error al conectar' });
-  }
-}
+};
